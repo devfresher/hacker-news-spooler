@@ -9,10 +9,15 @@ import { Story } from '../models/story.model';
 import { AuthorService } from 'src/modules/author/services/author.service';
 import { Author } from 'src/modules/author/models/author.model';
 import { CommentService } from 'src/modules/comment/services/comment.service';
+import { Comment } from 'src/modules/comment/models/comment.model';
 
 @Injectable()
 export class StoryService {
   private readonly logger = new Logger(StoryService.name);
+  private readonly includeables = [
+    { model: Author, as: 'author' },
+    { model: Comment, as: 'comments' },
+  ];
 
   constructor(
     private readonly hackerNewsAPIService: HackerNewsAPIService,
@@ -24,7 +29,9 @@ export class StoryService {
 
   async getAll() {
     try {
-      const stories = await this.storyModel.findAll();
+      const stories = await this.storyModel.findAll({
+        include: this.includeables,
+      });
       return stories;
     } catch (error) {
       this.logger.error(`Error retrieving stories: ${error}`);
@@ -36,7 +43,7 @@ export class StoryService {
     try {
       const story = await this.storyModel.findOne({
         where: { id },
-        include: [],
+        include: this.includeables,
       });
       return story;
     } catch (error) {
@@ -80,6 +87,14 @@ export class StoryService {
   }
 
   private async createStoryAndComments(story: Item, author: Author) {
+    const existingStory = await this.storyModel.findOne({
+      where: { apiId: story.id },
+    });
+
+    if (existingStory) {
+      return existingStory;
+    }
+
     const storyData = {
       apiId: story.id,
       title: story.title,
