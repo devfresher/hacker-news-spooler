@@ -25,3 +25,7 @@ To set up the project take the following steps:
 - Install dependencies: npm install
 - Set up environment variables: Create a .env file (from .env.example) and specify the required environment variables.
 - Start the application: npm start
+
+## API Documentation
+
+API documentation can be found <https://documenter.getpostman.com/view/32471171/2sA2xjyAic>

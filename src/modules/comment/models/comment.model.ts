@@ -9,6 +9,7 @@ import {
   HasMany,
 } from 'sequelize-typescript';
 import { Author } from '../../author/models/author.model';
+import { Story } from 'src/modules/story/models/story.model';
 
 @Table({ tableName: 'comments' })
 export class Comment extends Model<Comment> {
@@ -32,6 +33,7 @@ export class Comment extends Model<Comment> {
   })
   text: string;
 
+  @ForeignKey(() => Story)
   @Column({
     type: DataType.INTEGER,
     allowNull: false,

@@ -9,6 +9,7 @@ import { AuthorModule } from './modules/author/author.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { HttpModule } from '@nestjs/axios';
 import { HackerNewsAPIService } from './common/services/hacker-new-api.service';
+import { AppController } from './author.controller';
 
 @Module({
   imports: [
@@ -34,7 +35,7 @@ import { HackerNewsAPIService } from './common/services/hacker-new-api.service';
       }),
     }),
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [HackerNewsAPIService],
 })
 export class AppModule {}

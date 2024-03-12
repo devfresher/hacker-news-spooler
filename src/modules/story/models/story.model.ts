@@ -5,9 +5,11 @@ import {
   BelongsTo,
   ForeignKey,
   DataType,
+  HasMany,
 } from 'sequelize-typescript';
 import { Author } from '../../author/models/author.model';
 import { CreationOptional } from 'sequelize';
+import { Comment } from 'src/modules/comment/models/comment.model';
 
 @Table({ tableName: 'stories' })
 export class Story extends Model<Story> {
@@ -70,4 +72,7 @@ export class Story extends Model<Story> {
   // Associations to other entities here
   @BelongsTo(() => Author)
   author: Author;
+
+  @HasMany(() => Comment)
+  comments: Comment[];
 }

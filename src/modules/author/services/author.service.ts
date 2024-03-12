@@ -35,6 +35,7 @@ export class AuthorService {
         where: { id },
         include: this.includeables,
       });
+
       return story;
     } catch (error) {
       this.logger.error(`Error retrieving story: ${error}`);
