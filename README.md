@@ -21,7 +21,7 @@ This task include the following functionalities:
 
 To set up the project take the following steps:
 
-- Clone the repository: git clone <https://github.com/devfresher/hacker-new-spooler>
+- Clone the repository: git clone <https://github.com/devfresher/hacker-news-spooler>
 - Install dependencies: npm install
 - Set up environment variables: Create a .env file (from .env.example) and specify the required environment variables.
 - Start the application: npm start
