@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Item } from 'src/common/interfaces/hacker-news.interface';
 import { Comment } from '../models/comment.model';
 import { Author } from 'src/modules/author/models/author.model';
 import { HackerNewsAPIService } from 'src/common/services/hacker-new-api.service';
@@ -36,6 +35,19 @@ export class CommentService {
     }
   }
 
+  async getAllByStoryId(storyId: number) {
+    try {
+      const comments = await this.commentModel.findAll({
+        where: { storyId },
+        include: this.includeables,
+      });
+      return comments;
+    } catch (error) {
+      this.logger.error(`Error retrieving comments: ${error}`);
+      throw error;
+    }
+  }
+
   async getOne(id: number) {
     try {
       const story = await this.commentModel.findOne({
@@ -49,40 +61,54 @@ export class CommentService {
     }
   }
 
-  public async createComment(comment: Item, author: Author, parentId?: number) {
+  public async createComment(
+    commentId: number,
+    parentId?: number,
+    storyId?: number,
+  ) {
+    const { data: comment } =
+      await this.hackerNewsAPIService.fetchItem(commentId);
+
     const existingComment = await this.commentModel.findOne({
-      where: { apiId: comment.id },
+      where: { apiId: commentId },
     });
 
     if (existingComment) {
       return existingComment;
     }
 
-    const CommentData = {
-      apiId: comment.id,
-      text: comment.text,
-      authorId: author.id,
-      storyId: parentId,
-      createdAt: new Date(comment.time * 1000),
-    };
-
-    // Create the Comment record in the database
-    const createdComment = await this.commentModel.create(CommentData);
-
-    // Recursively process each comment (kid) associated with the Comment
-    if (comment.kids) {
-      for (const commentId of comment.kids) {
-        const { data: commentData } =
-          await this.hackerNewsAPIService.fetchItem(commentId);
-
+    if (comment.id) {
+      if (!comment.by) {
         const { data: authorData } = await this.hackerNewsAPIService.fetchUser(
-          commentData.by,
+          comment.by,
         );
         const author = await this.authorService.createAuthor(authorData);
 
-        // Create the comment record in the database
-        await this.createComment(commentData, author, createdComment.id);
+        const CommentData = {
+          apiId: comment.id,
+          text: comment.text,
+          authorId: author.id,
+          storyId,
+          parentId,
+          createdAt: new Date(comment.time * 1000),
+        };
+        const createdComment = await this.commentModel.create(CommentData);
+
+        if (createdComment) {
+          this.logger.log(
+            `New comment created: ${createdComment.id} created in the database.`,
+          );
+        }
+        if (comment.kids) {
+          await this.kidsComment(comment.kids, createdComment.id);
+        }
       }
+    }
+  }
+
+  public async kidsComment(kids: number[], parentId?: number) {
+    for (const commentId of kids) {
+      await this.createComment(commentId, parentId);
     }
   }
 }

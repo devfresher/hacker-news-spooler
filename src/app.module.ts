@@ -7,16 +7,15 @@ import { Author } from 'src/modules/author/models/author.model';
 import { StoryModule } from './modules/story/story.module';
 import { AuthorModule } from './modules/author/author.module';
 import { CommentModule } from './modules/comment/comment.module';
-import { HttpModule } from '@nestjs/axios';
-import { HackerNewsAPIService } from './common/services/hacker-new-api.service';
 import { AppController } from './author.controller';
+import { BullModule } from '@nestjs/bull';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     StoryModule,
     CommentModule,
     AuthorModule,
-    HttpModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -34,8 +33,20 @@ import { AppController } from './author.controller';
         models: [Story, Comment, Author],
       }),
     }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('REDIS_HOST'),
+          port: configService.get('REDIS_PORT'),
+          username: configService.get('REDIS_USERNAME'),
+          password: configService.get('REDIS_ACCESS_KEY'),
+        },
+      }),
+    }),
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [HackerNewsAPIService],
+  providers: [],
 })
 export class AppModule {}

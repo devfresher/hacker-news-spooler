@@ -3,7 +3,7 @@ import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
 import { Comment } from 'src/modules/comment/models/comment.model';
 import { Story } from 'src/modules/story/models/story.model';
 
-@Table
+@Table({ tableName: 'authors' })
 export class Author extends Model<Author> {
   @Column({
     type: DataType.INTEGER,
@@ -20,8 +20,7 @@ export class Author extends Model<Author> {
   username: string;
 
   @Column({
-    type: DataType.STRING,
-    allowNull: false,
+    type: DataType.TEXT,
   })
   about: string;
 

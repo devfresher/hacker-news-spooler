@@ -44,6 +44,8 @@ export class AuthorService {
   }
 
   public async createAuthor(author: User) {
+    if (!author.id) return null;
+
     const existingAuthor = await this.authorModel.findOne({
       where: { username: author.id },
     });

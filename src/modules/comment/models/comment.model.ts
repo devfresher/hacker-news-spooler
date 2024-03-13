@@ -29,7 +29,7 @@ export class Comment extends Model<Comment> {
 
   @Column({
     type: DataType.TEXT,
-    allowNull: false,
+    allowNull: true,
   })
   text: string;
 

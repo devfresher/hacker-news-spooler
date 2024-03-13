@@ -6,7 +6,7 @@ import { Item, User } from '../interfaces/hacker-news.interface';
 
 @Injectable()
 export class HackerNewsAPIService {
-  private readonly baseUrl = ' https://hacker-news.firebaseio.com/v0';
+  private readonly baseUrl = 'https://hacker-news.firebaseio.com/v0';
 
   constructor(private readonly httpService: HttpService) {}
 
