@@ -36,7 +36,7 @@ export class Comment extends Model<Comment> {
   @ForeignKey(() => Story)
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
+    allowNull: true,
   })
   storyId: number;
 

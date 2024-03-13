@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { User } from 'src/common/interfaces/hacker-news.interface';
 import { InjectModel } from '@nestjs/sequelize';
 import { Author } from '../models/author.model';
 import { Comment } from 'src/modules/comment/models/comment.model';
 import { Story } from 'src/modules/story/models/story.model';
+import { HackerNewsAPIService } from 'src/common/services/hacker-new-api.service';
 
 @Injectable()
 export class AuthorService {
@@ -15,6 +15,7 @@ export class AuthorService {
 
   constructor(
     @InjectModel(Author) private readonly authorModel: typeof Author,
+    private readonly hackerNewsAPIService: HackerNewsAPIService,
   ) {}
 
   async getAll() {
@@ -43,8 +44,9 @@ export class AuthorService {
     }
   }
 
-  public async createAuthor(author: User) {
-    if (!author.id) return null;
+  public async processAuthor(authorId: string) {
+    const { data: author } =
+      await this.hackerNewsAPIService.fetchUser(authorId);
 
     const existingAuthor = await this.authorModel.findOne({
       where: { username: author.id },
@@ -54,14 +56,23 @@ export class AuthorService {
       return existingAuthor;
     }
 
-    const authorData = {
-      username: author.id,
-      karma: author.karma,
-      about: author.about,
-      createdAt: new Date(author.created * 1000),
-    };
+    if (author.id) {
+      const authorData = {
+        username: author.id,
+        karma: author.karma,
+        about: author.about,
+        createdAt: new Date(author.created * 1000),
+      };
 
-    // Create the Author record in the database
-    return await this.authorModel.create(authorData);
+      // Create the Author record in the database
+      const createdAuthor = await this.authorModel.create(authorData);
+
+      if (createdAuthor) {
+        this.logger.log(
+          `Author ${createdAuthor.username} created successfully with id ${createdAuthor.id}`,
+        );
+        return createdAuthor;
+      }
+    }
   }
 }

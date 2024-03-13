@@ -61,54 +61,48 @@ export class CommentService {
     }
   }
 
-  public async createComment(
-    commentId: number,
+  public async processComments(
+    commentIds: number[],
     parentId?: number,
     storyId?: number,
   ) {
-    const { data: comment } =
-      await this.hackerNewsAPIService.fetchItem(commentId);
+    for (const commentId of commentIds) {
+      const { data: comment } =
+        await this.hackerNewsAPIService.fetchItem(commentId);
 
-    const existingComment = await this.commentModel.findOne({
-      where: { apiId: commentId },
-    });
+      const existingComment = await this.commentModel.findOne({
+        where: { apiId: commentId },
+      });
 
-    if (existingComment) {
-      return existingComment;
-    }
+      if (existingComment) {
+        return existingComment;
+      }
 
-    if (comment.id) {
-      if (!comment.by) {
-        const { data: authorData } = await this.hackerNewsAPIService.fetchUser(
-          comment.by,
-        );
-        const author = await this.authorService.createAuthor(authorData);
+      if (comment.id) {
+        if (comment.by) {
+          const author = await this.authorService.processAuthor(comment.by);
 
-        const CommentData = {
-          apiId: comment.id,
-          text: comment.text,
-          authorId: author.id,
-          storyId,
-          parentId,
-          createdAt: new Date(comment.time * 1000),
-        };
-        const createdComment = await this.commentModel.create(CommentData);
+          const CommentData = {
+            apiId: comment.id,
+            text: comment.text,
+            authorId: author.id,
+            storyId,
+            parentId,
+            createdAt: new Date(comment.time * 1000),
+          };
+          const createdComment = await this.commentModel.create(CommentData);
 
-        if (createdComment) {
-          this.logger.log(
-            `New comment created: ${createdComment.id} created in the database.`,
-          );
-        }
-        if (comment.kids) {
-          await this.kidsComment(comment.kids, createdComment.id);
+          if (comment.kids) {
+            await this.processComments(comment.kids, createdComment.id);
+          }
+
+          if (createdComment) {
+            this.logger.log(
+              `New comment created: ${createdComment.id} created in the database.`,
+            );
+          }
         }
       }
-    }
-  }
-
-  public async kidsComment(kids: number[], parentId?: number) {
-    for (const commentId of kids) {
-      await this.createComment(commentId, parentId);
     }
   }
 }

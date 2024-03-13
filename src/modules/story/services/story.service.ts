@@ -73,11 +73,7 @@ export class StoryService {
 
     if (story.id) {
       if (story.by) {
-        const { data: authorData } = await this.hackerNewsAPIService.fetchUser(
-          story.by,
-        );
-
-        const author = await this.authorService.createAuthor(authorData);
+        const author = await this.authorService.processAuthor(story.by);
 
         const storyData = {
           apiId: story.id,
@@ -90,13 +86,11 @@ export class StoryService {
 
         const createdStory = await this.storyModel.create(storyData);
         if (story.kids) {
-          for (const commentId of story.kids) {
-            await this.commentService.createComment(
-              commentId,
-              null,
-              createdStory.id,
-            );
-          }
+          await this.commentService.processComments(
+            story.kids,
+            null,
+            createdStory.id,
+          );
         }
 
         if (createdStory) {
